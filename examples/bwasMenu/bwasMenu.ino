@@ -12,17 +12,21 @@ thermistor_t thermistor_config[] = {
 //array for reading temperatures
 int16_t temperatures[8];
 
+void printPrompt() {
+  Serial.print("\nOrders, sir? >");  
+}
+
 void printMenu() {
   Serial.println("Bottle Warmer Arduino Shield Demo");
   Serial.println("\nMenu:");
-  Serial.println("w x     - turn on warmer, set fan to x");
+  Serial.println("h x     - turn on warmer, set fan to x");
   Serial.println("c x     - turn on cooler, set fan to x");
   Serial.println("t [0-7] - measure temperature probe x");
   Serial.println("t 8     - Measure all temperature probes");
   Serial.println("r x     - Set red LED to x");
   Serial.println("g x     - Set green LED to x");
-  Serial.println("b x     - set blue LED to x");
-  Serial.print("\nOrders, sir? >");
+  Serial.println("b x     - set blue LED to x");  
+  Serial.println("o       - all off");
 }
 
 void setup() {
@@ -38,6 +42,7 @@ void setup() {
   
   //give some demo options
   printMenu();
+  printPrompt();
 }
 
 void printTemp (int16_t temp) {
@@ -74,13 +79,25 @@ void loop() {
     Serial.print(" ");
     Serial.println(arg);
     switch (cmd) {
-      case 'w':
+      case 'h':
+        if (arg == 0) {
+          heaterOff();
+          setHeaterFan(0);
+          Serial.println("heater off");
+          break;
+        }
         heaterOn();
         setHeaterFan(arg);
         Serial.print("heater on, fan to ");
         Serial.println(arg);
         break;
       case 'c':
+        if (arg == 0) {
+          coolerOff();
+          setCoolerFan(0);
+          Serial.println("cooler off");
+          break;
+        }
         coolerOn();
         setCoolerFan(arg);
         Serial.print("cooler on, fan to ");
@@ -102,9 +119,19 @@ void loop() {
       case 'b':
         analogWriteBlue(arg);
         break;
+      case 'o':
+        coolerOff();
+        heaterOff();
+        setCoolerFan(0);
+        setHeaterFan(0);
+        Serial.println("Diverting all power");
+        break;
       default:
-        printMenu(); 
+        printMenu();
+        Serial.flush(); 
     }
+    printPrompt();
   }
   delay(100);        // delay in between reads for stability
+  
 }
