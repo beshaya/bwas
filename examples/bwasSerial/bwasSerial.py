@@ -8,9 +8,7 @@ ser = 0
  * Call these functions to control the BWAS!
 '''
 
-def connect(port) :
-    global ser
-    ser = serial.Serial(port,115200,timeout=1)
+
 
 def heater(state) :
     cmd = "h%02X\n" % state
@@ -45,7 +43,10 @@ def readTemp(channel):
     cmd = "t%02X\n" % channel
     ser.write(cmd)
     resp = ser.readline();
-    return float(resp);
+    try:
+        return float(resp);
+    except ValueError, e:
+        return float('nan')
 
 def readIR():
     ser.write("i00\n");
@@ -67,11 +68,17 @@ def blue(val):
     ser.write(cmd)
     ser.readline()
 
-def off(val):
+def off(val=0):
     cmd = "o00\n"
     ser.write(cmd)
     ser.readline()
     
+def connect(port) :
+    global ser
+    ser = serial.Serial(port,115200,timeout=1)
+    #i don't know why, but the first two responses are always blank...
+    heater(0)
+    heater(0)
 '''
  * Functions for testing this library
 '''
