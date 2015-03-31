@@ -156,6 +156,22 @@ int16_t readThermistor (uint8_t index) {
   return getThermistorTemp(value, thermistor_config[index]);
 }
 
+/**
+ * Tests the thermistor library for given type
+ * does NOT test the physical thermistor
+ */
+int16_t testThermistor (thermistor_t type) {
+  for (uint16_t j=0; j< 1023; j++) {
+    uint16_t value = 0;
+    for (int i=0; i < OVERSAMPLE; i++) {
+      value += j;
+    }
+    Serial.print(value);
+    Serial.print(" -> ");
+    Serial.println(getThermistorTemp(value, type));
+  }
+}
+
 /********************************************
  * LED/ring Functions
  ********************************************/

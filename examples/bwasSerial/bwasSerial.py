@@ -34,7 +34,6 @@ def coolerFan(speed):
         print "bad speed, must be [0,255]"
         return
     bwas_state['cooler fan'] = speed / 255.
-    bwas
     cmd = "C%02X\n" % speed
     ser.write(cmd)
     ser.readline();
