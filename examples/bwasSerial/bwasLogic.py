@@ -4,6 +4,12 @@
  put logic functions into this file to add define how the bwas
  controls the warmer
  
+ in order for bwas.py to use the logic module, it must be referenced by
+ init and logic, the lookup tables for the functions.
+ 
+ The function linked to by init will be called once at the start of bwas,
+ then logic will be called each time step of bwas.
+ 
  logic functions take a dictionary input,
  this dictionary should include a timestamp, and various temperatures
 '''
@@ -11,9 +17,10 @@
 import bwasSerial as bwas
 import getch
 
-
-
 internalState = {}
+
+init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip}
+logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip}
 
 def skip() :
     pass
@@ -49,6 +56,5 @@ def userInit() :
     getch.listen();
     print "now listening to key inputs;"
     print "press h to heat, c to cool, o to off"
-    
-init = {"heat":skip, "cool":skip, "user":userInit}
-logic = {"heat":heat, "cool":cool, "user":user}
+
+

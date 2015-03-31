@@ -146,10 +146,12 @@ int16_t readThermistor (uint8_t index) {
   digitalWrite(MUX_B, (mux_code >> 1) & 0x1);
   digitalWrite(MUX_C, (mux_code >> 2) & 0x1);
   //allow time to settle, then read and convert
-  delay(10);
+  delay(40);
   uint16_t value = 0;
   for (int i = 0; i < OVERSAMPLE; i++) {
     value += analogRead(MUXOUT);
+    delay(10);
+    //Serial.println(value);
   }
   return getThermistorTemp(value, thermistor_config[index]);
 }

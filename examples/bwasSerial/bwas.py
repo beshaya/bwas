@@ -11,7 +11,7 @@ thermistors = {"heater":0, "air":1, "bottle":2}
 default_rate = 2
 rate = default_rate
 
-module = "heat"
+module = "observe"
 filename = "log"
 comment = None
 
@@ -59,8 +59,10 @@ if __name__ == "__main__":
     logger.newLog(filename);
     if comment != None:
         logger.logDict({"comment": comment})
-        
+    
+    #initialize data
     data = {}
+    data['state'] = bwas.bwas_state; #assign internal state as a sub-dictionary
     last_time = 0;
     start_time = time.time();
     #log every seconds
@@ -82,8 +84,7 @@ if __name__ == "__main__":
         logger.logDict(data)
     logger.close();
     print "Test complete"
-    #ending the script disconnects serial, which causes the board to reset
-    #this will turn off all outputs (yay!)
+    bwas.off();
         
 
 

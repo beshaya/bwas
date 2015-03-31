@@ -4,6 +4,8 @@ import sys
 port = 'COM6'
 ser = 0
 
+#state variables are scaled to between 0 and 1 inclusive
+bwas_state = {'heater':0,'heater fan':0,'cooler':0,'cooler fan':0}
 '''
  * Call these functions to control the BWAS!
 '''
@@ -11,11 +13,18 @@ ser = 0
 
 
 def heater(state) :
+    #cast to 1 or 0
+    state = 1 if state else 0;
+    bwas_state['heater'] = state
     cmd = "h%02X\n" % state
     ser.write(cmd);
+    
     resp = ser.readline();
 
 def cooler(state):
+    #cast to 1 or 0
+    state = 1 if state else 0;
+    bwas_state['cooler'] = state
     cmd = "c%02X\n" % state
     ser.write(cmd);
     ser.readline()
@@ -24,6 +33,8 @@ def coolerFan(speed):
     if (speed > 255 or speed < 0):
         print "bad speed, must be [0,255]"
         return
+    bwas_state['cooler fan'] = speed / 255.
+    bwas
     cmd = "C%02X\n" % speed
     ser.write(cmd)
     ser.readline();
@@ -32,6 +43,7 @@ def heaterFan(speed):
     if (speed > 255 or speed < 0):
         print "bad speed, must be [0,255]"
         return
+    bwas_state['heater fan'] = speed / 255.
     cmd = "H%02X\n" % speed
     ser.write(cmd)
     ser.readline();
@@ -69,6 +81,10 @@ def blue(val):
     ser.readline()
 
 def off(val=0):
+    bwas_state['heater'] = 0
+    bwas_state['cooler'] = 0
+    bwas_state['cooler fan'] = 0
+    bwas_state['heater fan'] = 0
     cmd = "o00\n"
     ser.write(cmd)
     ser.readline()
