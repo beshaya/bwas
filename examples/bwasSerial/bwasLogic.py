@@ -19,9 +19,6 @@ import getch
 
 internalState = {}
 
-init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip}
-logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip}
-
 def skip() :
     pass
     
@@ -57,4 +54,6 @@ def userInit() :
     print "now listening to key inputs;"
     print "press h to heat, c to cool, o to off"
 
+init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip}
+logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip}
 
