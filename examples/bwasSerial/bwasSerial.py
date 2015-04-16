@@ -57,6 +57,7 @@ def readTemp(channel):
     try:
         return float(resp);
     except ValueError, e:
+        print "bad input: '"+resp+"'"
         return float('nan')
 
 def readIR():
