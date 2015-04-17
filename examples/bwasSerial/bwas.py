@@ -5,7 +5,7 @@ import sys
 import bwasLogic as logic
 
 #assign your thermistors names here!
-thermistors = {"heater":0, "air":1, "bottle":2}
+thermistors = {"coolring_1":4, "coolring_2":5, "heatsink_1":2,"heatsink_2":3,"heater":0,"bottle":1}
 
 #default samples per second
 default_rate = 2
@@ -13,11 +13,12 @@ rate = default_rate
 
 module = "observe"
 filename = "log"
-comment = None
+comment = ""
+#comment = None
 
 if __name__ == "__main__":
 
-    port = "COM14"
+    port = "COM3"
     duration = float("Inf")
     if len(sys.argv) < 2:
         print "Usage:"
@@ -85,6 +86,6 @@ if __name__ == "__main__":
     logger.close();
     print "Test complete"
     bwas.off();
-        
+    
 
 

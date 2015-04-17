@@ -19,17 +19,35 @@ import getch
 
 internalState = {}
 
-def skip() :
+def skip(arg=0) :
     pass
     
 def heat(state) :
-    print bwas.ser
     bwas.heater(1)
     bwas.heaterFan(255)
     
 def cool(state) :
     bwas.cooler(1)
-    bwas.heaterFan(255)
+    bwas.coolerFan(255)
+    
+def fanTest(state) :
+    bwas.cooler(1)
+    if state['coolring_2'] < 0:
+        bwas.coolerFan(0)
+    elif state['coolring_2'] > 5:
+        bwas.coolerFan(255)
+    else:
+        bwas.coolerFan(int((state['coolring_2'])*51))
+
+def insulationTest(state) :
+    bwas.cooler(1)
+    bwas.coolerFan(255)
+    if state['coolring_2'] > 0:
+        bwas.heaterFan(0)
+    elif state['coolring_2'] < -5:
+        bwas.heaterFan(255)
+    else:
+        bwas.heaterFan(abs(int((state['coolring_2'])*51)))
     
 def user(state) :
     cmd = getch.charPressed()
@@ -39,7 +57,7 @@ def user(state) :
         bwas.heaterFan(255)
         bwas.coolerFan(0)
         bwas.cooler(0)
-    elif (cmd == 'c'):
+    elif (cmd == 'c'): 
         print "cooling"
         bwas.cooler(1)
         bwas.coolerFan(255)
@@ -54,6 +72,6 @@ def userInit() :
     print "now listening to key inputs;"
     print "press h to heat, c to cool, o to off"
 
-init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip}
-logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip}
+init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip, "fanTest":skip,     "insulationTest":skip}
+logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip, "fanTest":fanTest,  "insulationTest":insulationTest}
 
