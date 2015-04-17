@@ -13,7 +13,7 @@ rate = default_rate
 
 module = "observe"
 filename = "log"
-comment = ""
+comment = "" #so that there is always a comment, even if it's blank. Plotting code wants a comment currently
 #comment = None
 
 if __name__ == "__main__":
