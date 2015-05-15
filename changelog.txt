@@ -1,0 +1,3 @@
+bwasnano
+-heaterOn and coolerOn are replaced by setHeater and setCooler, take 8bit values for pwm
+-setHeaterFan and setCoolerFan are now digital; for backwards compatibility, they will accept uint8_t's, but evaluate the value as true/false (0/not 0)

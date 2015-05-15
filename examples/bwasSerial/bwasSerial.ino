@@ -21,8 +21,6 @@ void setup() {
   Serial.begin(115200);
   //initialize pins
   bwasInit();
-  //enable the green led
-  enableGreen();
   //configure thermistors
   configureThermistors(thermistor_config); 
   if (! tmp007.begin(TMP007_CFG_1SAMPLE)) {
@@ -32,14 +30,39 @@ void setup() {
   }
 }
 
-void printTemp (int16_t temp) {
+void printDecimal (int16_t temp) {
+  if (temp < 0 ){
+    Serial.print("-");
+    temp = -1*temp;
+  }
   Serial.print(temp / PRECISION);
   Serial.print(".");
-  Serial.print(temp % PRECISION);
+  uint16_t remainder = temp % PRECISION;
+  do{
+    Serial.print(remainder % PRECISION);
+    remainder = (remainder * 10) % (PRECISION * 10);
+  } while (remainder > 0);
+  Serial.println();
 }
 
 void readOne(uint8_t channel) {
-  printTemp(readThermistor(channel));
+  printDecimal(readThermistor(channel));
+}
+
+void readTouchSwitch(uint8_t channel) {
+  if (channel == 1) {
+    Serial.println(readTouch1());
+  } else if (channel == 2) {
+    Serial.println(readTouch2());
+  }
+}
+
+void readCurrent(uint8_t arg) {
+  if (arg == 0) {
+    printDecimal(heaterCurrent());
+  } else if (arg == 1) {
+    printDecimal(coolerCurrent());
+  }
 }
 
 uint8_t parseNibble(char hex) {
@@ -73,12 +96,13 @@ void loop() {
     uint8_t arg = parseHex(hex1,hex2);
     switch (cmd) {
       case 'h':
-        if (arg) heaterOn(); else heaterOff();
+        setHeater(arg);
         break;
       case 'c':
-        if (arg) coolerOn(); else coolerOff();
+        setCooler(arg);
         break;
       case 'H':
+        //set heater still takes arg
         setHeaterFan(arg);
         break;
       case 'C':
@@ -100,6 +124,13 @@ void loop() {
         heaterOff();
         setCoolerFan(0);
         setHeaterFan(0);
+        break;
+      case 's':
+        readTouchSwitch(arg);
+        break;
+      //I'm out of descriptive letters for heating vs cooling
+      case 'I':
+        readCurrent(arg);
         break;
       case 'i':
         Serial.print(tmp007.readObjTempC());
