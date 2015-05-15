@@ -185,7 +185,6 @@ int16_t getCurrent(int16_t raw_adc, int16_t baseline) {
 }
     
 int16_t heaterCurrent() {
-    Serial.println(analogRead(IHEAT));
     int16_t raw_adc = 0 ;
     for(int i=0;i < OVERSAMPLE; i++) {
         raw_adc += analogRead(IHEAT);

@@ -19,30 +19,30 @@ import getch
 
 internalState = {}
 
-def skip() :
+def skip(arg=0) :
     pass
     
 def heat(state) :
     print bwas.ser
-    bwas.heater(1)
-    bwas.heaterFan(255)
+    bwas.heater(255)
+    bwas.heaterFan(1)
     
 def cool(state) :
-    bwas.cooler(1)
-    bwas.heaterFan(255)
+    bwas.cooler(255)
+    bwas.heaterFan(1)
     
 def user(state) :
     cmd = getch.charPressed()
     if (cmd == 'h'):
         print "heating"
-        bwas.heater(1)
-        bwas.heaterFan(255)
+        bwas.heater(255)
+        bwas.heaterFan(1)
         bwas.coolerFan(0)
         bwas.cooler(0)
     elif (cmd == 'c'):
         print "cooling"
-        bwas.cooler(1)
-        bwas.coolerFan(255)
+        bwas.cooler(255)
+        bwas.coolerFan(1)
         bwas.heaterFan(0)
         bwas.heater(0)
     elif (cmd =='0'):
