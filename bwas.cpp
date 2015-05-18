@@ -143,8 +143,11 @@ int16_t testThermistor (thermistor_t type) {
       value += j;
     }
     Serial.print(value);
+    int16_t temp = getThermistorTemp(value,type);
     Serial.print(" -> ");
-    Serial.println(getThermistorTemp(value, type));
+    printDecimal(temp);
+    Serial.print(" / ");
+    Serial.println(temp);
   }
 }
 
@@ -207,6 +210,20 @@ void calibrateCurrent() {
         coolCurrent0 += analogRead(ICOOL);
         hotCurrent0 += analogRead(IHEAT);
     }
+}
+
+void printDecimal (int16_t temp) {
+  if (temp < 0 ){
+    Serial.print("-");
+    temp = -1*temp;
+  }
+  Serial.print(temp / PRECISION);
+  Serial.print(".");
+  uint16_t remainder = temp % PRECISION;
+  do{
+    Serial.print(remainder * 10 / PRECISION);
+    remainder = (remainder * 10) % (PRECISION);
+  } while (remainder > 0);
 }
 
 /************************************************

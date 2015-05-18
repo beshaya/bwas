@@ -4,12 +4,7 @@
 #include "Adafruit_TMP007.h"
 
 //choose thermistor types for the 8 channels
-thermistor_t thermistor_config[] = {
-  THERMISTOR_MM103J1F, THERMISTOR_USP10982,
-  THERMISTOR_NTCALUG03A103H, THERMISTOR_NTCALUG03A103H,
-  THERMISTOR_NTCALUG03A103H, THERMISTOR_NTCALUG03A103H,
-  THERMISTOR_NONE, THERMISTOR_NONE
-};
+thermistor_t thermistor_config[8];
 
 //array for reading temperatures
 int16_t temperatures[8];
@@ -18,6 +13,15 @@ Adafruit_TMP007 tmp007;
 uint8_t sensor_found = 0;
 
 void setup() {
+
+  thermistor_config[0] = THERMISTOR_NTCLG100E2103JB;
+  thermistor_config[1] = THERMISTOR_NTCLE400E3103H;
+  thermistor_config[2] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[3] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[4] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[5] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[6] = THERMISTOR_NTCLE400E3103H;
+  thermistor_config[7] = THERMISTOR_NTCLE400E3103H;
   Serial.begin(115200);
   //initialize pins
   bwasInit();
@@ -28,21 +32,7 @@ void setup() {
   } else {
     sensor_found = 1;
   }
-}
-
-void printDecimal (int16_t temp) {
-  if (temp < 0 ){
-    Serial.print("-");
-    temp = -1*temp;
-  }
-  Serial.print(temp / PRECISION);
-  Serial.print(".");
-  uint16_t remainder = temp % PRECISION;
-  do{
-    Serial.print(remainder % PRECISION);
-    remainder = (remainder * 10) % (PRECISION * 10);
-  } while (remainder > 0);
-  Serial.println();
+  Serial.println("BWAS READY");
 }
 
 void readOne(uint8_t channel) {
@@ -51,9 +41,9 @@ void readOne(uint8_t channel) {
 
 void readTouchSwitch(uint8_t channel) {
   if (channel == 1) {
-    Serial.println(readTouch1());
+    Serial.print(readTouch1());
   } else if (channel == 2) {
-    Serial.println(readTouch2());
+    Serial.print(readTouch2());
   }
 }
 

@@ -83,5 +83,6 @@ void analogWriteBlue (uint8_t pwm_val);
 void analogWriteGreen (uint8_t pwm_val);
 
 void calibrateCurrent ();
+void printDecimal (int16_t number);
  
 #endif

@@ -8,7 +8,8 @@ import bwasLogic as logic
 import signal
 
 #assign your thermistors names here!
-thermistors = {"heater":0, "air":1, "bottle":2}
+thermistors = {"heater":0, "bottle":1, "coolring1":2, "coolring2":3,
+               "heatsink1":4,"heatsink2":5,"air1":6,"air2":7}
 
 #default samples per second
 default_rate = 2
