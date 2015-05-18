@@ -112,6 +112,8 @@ def blue(val):
     ser.write(cmd)
     ser.readline()
 
+#Turn off everything.
+#Since this is used in the SIGTERM routine, return the response
 def off(val=0):
     bwas_state['heater'] = 0
     bwas_state['cooler'] = 0
@@ -119,11 +121,13 @@ def off(val=0):
     bwas_state['heater fan'] = 0
     cmd = "o00\n"
     ser.write(cmd)
-    ser.readline()
+    response = ser.readline()
+    return response
+    
     
 def connect(port) :
     global ser
-    ser = serial.Serial(port,115200)
+    ser = serial.Serial(port,115200,timeout=10)
     #i don't know why, but the first two responses are always blank...
     resp = ''
     while(resp.find("BWAS READY") < 0):

@@ -20,8 +20,9 @@ filename = "log"
 comment = None
 
 def signal_handler(signal, frame):
-    print('Exiting')
-    bwas.off()
+    print('Shutting down BWAS')
+    if bwas.off() != '\n':
+        print('Warning: No acknowledgement, check BWAS')
     sys.exit(0)
 
 if __name__ == "__main__":
