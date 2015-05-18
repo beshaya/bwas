@@ -13,7 +13,7 @@ rate = default_rate
 
 module = "observe"
 filename = "log"
-comment = "" #so that there is always a comment, even if it's blank. Plotting code wants a comment currently
+comment = ""
 #comment = None
 
 if __name__ == "__main__":
@@ -82,9 +82,10 @@ if __name__ == "__main__":
         logic.logic[module](data)
         
         print data
+        print "Time Elapsed:", time.strftime('%H:%M:%S', time.gmtime(now - start_time))
         logger.logDict(data)
     logger.close();
-    print "Test complete"
+    print "Test complete:", filename
     bwas.off();
     
 
