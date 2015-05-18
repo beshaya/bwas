@@ -4,12 +4,7 @@
 #include "Adafruit_TMP007.h"
 
 //choose thermistor types for the 8 channels
-thermistor_t thermistor_config[] = {
-  THERMISTOR_MM103J1F, THERMISTOR_USP10982,
-  THERMISTOR_NTCALUG03A103H, THERMISTOR_NTCALUG03A103H,
-  THERMISTOR_NTCALUG03A103H, THERMISTOR_NTCALUG03A103H,
-  THERMISTOR_NONE, THERMISTOR_NONE
-};
+thermistor_t thermistor_config[8];
 
 //array for reading temperatures
 int16_t temperatures[8];
@@ -18,11 +13,18 @@ Adafruit_TMP007 tmp007;
 uint8_t sensor_found = 0;
 
 void setup() {
+
+  thermistor_config[0] = THERMISTOR_NTCLG100E2103JB;
+  thermistor_config[1] = THERMISTOR_NTCLE400E3103H;
+  thermistor_config[2] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[3] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[4] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[5] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[6] = THERMISTOR_NTCLE400E3103H;
+  thermistor_config[7] = THERMISTOR_NTCLE400E3103H;
   Serial.begin(115200);
   //initialize pins
   bwasInit();
-  //enable the green led
-  enableGreen();
   //configure thermistors
   configureThermistors(thermistor_config); 
   if (! tmp007.begin(TMP007_CFG_1SAMPLE)) {
@@ -30,16 +32,27 @@ void setup() {
   } else {
     sensor_found = 1;
   }
-}
-
-void printTemp (int16_t temp) {
-  Serial.print(temp / PRECISION);
-  Serial.print(".");
-  Serial.print(temp % PRECISION);
+  Serial.println("BWAS READY");
 }
 
 void readOne(uint8_t channel) {
-  printTemp(readThermistor(channel));
+  printDecimal(readThermistor(channel));
+}
+
+void readTouchSwitch(uint8_t channel) {
+  if (channel == 1) {
+    Serial.print(readTouch1());
+  } else if (channel == 2) {
+    Serial.print(readTouch2());
+  }
+}
+
+void readCurrent(uint8_t arg) {
+  if (arg == 0) {
+    printDecimal(heaterCurrent());
+  } else if (arg == 1) {
+    printDecimal(coolerCurrent());
+  }
 }
 
 uint8_t parseNibble(char hex) {
@@ -73,12 +86,13 @@ void loop() {
     uint8_t arg = parseHex(hex1,hex2);
     switch (cmd) {
       case 'h':
-        if (arg) heaterOn(); else heaterOff();
+        setHeater(arg);
         break;
       case 'c':
-        if (arg) coolerOn(); else coolerOff();
+        setCooler(arg);
         break;
       case 'H':
+        //set heater still takes arg
         setHeaterFan(arg);
         break;
       case 'C':
@@ -100,6 +114,13 @@ void loop() {
         heaterOff();
         setCoolerFan(0);
         setHeaterFan(0);
+        break;
+      case 's':
+        readTouchSwitch(arg);
+        break;
+      //I'm out of descriptive letters for heating vs cooling
+      case 'I':
+        readCurrent(arg);
         break;
       case 'i':
         Serial.print(tmp007.readObjTempC());

@@ -39,71 +39,47 @@ static uint8_t cMuxCodes[] = {T0,T1,T2,T3,T4,T5,T6,T7};
 
 static uint8_t enable_green = 0;
 
+static int16_t hotCurrent0;
+static int16_t coolCurrent0;
+
 /***************************************************
  * Power Output Functions
  ***************************************************/
 
- void coolerOn () {
-  digitalWrite(COOLER, 1);
-  digitalWrite(HEATER, 0);
+void setCooler (uint8_t pwm_val) {
+    analogWrite(COOLER, pwm_val);
+    analogWrite(HEATER, 0);
 }
 
 void coolerOff () {
-  digitalWrite(COOLER, 0);
+    analogWrite(COOLER, 0);
 }
 
 void setCoolerFan (uint8_t pwm_val) {
-  analogWrite(COOLER_FAN, pwm_val);
+    if (pwm_val) {
+       digitalWrite(COOLER_FAN, 1);
+    } else {
+        digitalWrite(COOLER_FAN, 0);
+    }
 }
 
-void heaterOn () {
-  digitalWrite(HEATER, 1);
-  digitalWrite(COOLER, 0);
+void setHeater (uint8_t pwm_val) {
+    analogWrite(HEATER, pwm_val);
+    analogWrite(COOLER, 0);
 }
 
 void heaterOff () {
-  digitalWrite(HEATER, 0);
+  analogWrite(HEATER, 0);
 }
 
 void setHeaterFan (uint8_t pwm_val) {
-  analogWrite(HEATER_FAN, pwm_val);
+    if (pwm_val) {
+        digitalWrite(HEATER_FAN, 1);
+    } else {
+        digitalWrite(HEATER_FAN, 0);
+    }
 }
 
-/************************************************
- * Initialization function
- ************************************************/
-uint8_t bwasInit() {
-  //initialize Heater and cooler
-  pinMode(COOLER, OUTPUT);
-  digitalWrite(COOLER, 0);
-  pinMode(HEATER, OUTPUT);
-  digitalWrite(HEATER, 0);
-  //initialize fans
-  pinMode(COOLER_FAN, OUTPUT);
-  analogWrite(COOLER_FAN, 0);
-  pinMode(HEATER_FAN, OUTPUT);
-  analogWrite(HEATER_FAN, 0);
-  //initialize sensor pins
-  pinMode(MUX_A, OUTPUT);
-  pinMode(MUX_B, OUTPUT);
-  pinMode(MUX_C, OUTPUT);
-  pinMode(MUXOUT, INPUT);
-  digitalWrite(MUXOUT, 0);
-  analogRead(MUXOUT);
-  //initialize LED/hall effect pins
-  pinMode(RED, OUTPUT);
-  pinMode(BLUE, OUTPUT);
-  //pinMode(GREEN, OUTPUT);
-  digitalWrite(RED, 0);
-  digitalWrite(BLUE, 0);
-  //digitalWrite(GREEN, 0);
-  pinMode(HALL, INPUT);
-  digitalWrite(HALL, 0);
-  
-  //set thermistor library to shift the correct number of bits
-  thermistor_setInputShift(6 - OVERSAMPLE_MAG);
-  return 1;//success
-}
 
 uint8_t configureThermistors (thermistor_t * configs) {
   for (int i=0; i<8; i++) {
@@ -167,8 +143,11 @@ int16_t testThermistor (thermistor_t type) {
       value += j;
     }
     Serial.print(value);
+    int16_t temp = getThermistorTemp(value,type);
     Serial.print(" -> ");
-    Serial.println(getThermistorTemp(value, type));
+    printDecimal(temp);
+    Serial.print(" / ");
+    Serial.println(temp);
   }
 }
 
@@ -177,26 +156,119 @@ int16_t testThermistor (thermistor_t type) {
  ********************************************/
 
 uint8_t readHall () {
-  return digitalRead(HALL);
+    return digitalRead(HALL);
 }
 
 void analogWriteRed (uint8_t pwm_val) {
-  analogWrite(RED, pwm_val);
+    analogWrite(RED, pwm_val);
 }
 
 void analogWriteGreen (uint8_t pwm_val) {
-  if (enable_green) analogWrite(GREEN, pwm_val);
+    analogWrite(GREEN, pwm_val);
 }
 
 void analogWriteBlue (uint8_t pwm_val) {
-  analogWrite(BLUE, pwm_val);
+    analogWrite(BLUE, pwm_val);
 }
 
-//Green conflicts with SD card shield.
-//if you are not using the SD card, enable green with this function
-void enableGreen () {
-  enable_green = 1;
-  pinMode(GREEN, OUTPUT);
-  analogWrite(GREEN, 0);
+uint8_t readTouch1 () {
+    return digitalRead(TOUCH1);
 }
+
+uint8_t readTouch2 () {
+    return digitalRead(TOUCH2);
+}
+
+int16_t getCurrent(int16_t raw_adc, int16_t baseline) {
+    //convert from adc lsb's to voltage
+    int16_t raw_current = (raw_adc-baseline) * (PRECISION/OVERSAMPLE) * 5 / (1<<11 - 1);
+    //The ACS715x20 has a gain of 185 mV/A
+    int16_t current = raw_current * 185 / 1000;
+    return current;
+}
+    
+int16_t heaterCurrent() {
+    int16_t raw_adc = 0 ;
+    for(int i=0;i < OVERSAMPLE; i++) {
+        raw_adc += analogRead(IHEAT);
+    }
+    return getCurrent(raw_adc, hotCurrent0);
+}
+
+int16_t coolerCurrent() {
+    int16_t raw_adc = 0;
+    for(int i=0;i < OVERSAMPLE; i++) {
+        raw_adc += analogRead(ICOOL);
+    }
+    return getCurrent(raw_adc, coolCurrent0);
+}
+
+void calibrateCurrent() {
+    coolCurrent0 = 0;
+    hotCurrent0 = 0;
+    for (int i=0; i < OVERSAMPLE; i++) {
+        coolCurrent0 += analogRead(ICOOL);
+        hotCurrent0 += analogRead(IHEAT);
+    }
+}
+
+void printDecimal (int16_t temp) {
+  if (temp < 0 ){
+    Serial.print("-");
+    temp = -1*temp;
+  }
+  Serial.print(temp / PRECISION);
+  Serial.print(".");
+  uint16_t remainder = temp % PRECISION;
+  do{
+    Serial.print(remainder * 10 / PRECISION);
+    remainder = (remainder * 10) % (PRECISION);
+  } while (remainder > 0);
+}
+
+/************************************************
+ * Initialization function
+ ************************************************/
+uint8_t bwasInit() {
+    //initialize Heater and cooler
+    pinMode(COOLER, OUTPUT);
+    digitalWrite(COOLER, 0);
+    pinMode(HEATER, OUTPUT);
+    digitalWrite(HEATER, 0);
+    //initialize fans
+    pinMode(COOLER_FAN, OUTPUT);
+    analogWrite(COOLER_FAN, 0);
+    pinMode(HEATER_FAN, OUTPUT);
+    analogWrite(HEATER_FAN, 0);
+    //initialize current sensors
+    pinMode(IHEAT, INPUT);
+    digitalWrite(IHEAT, 0);
+    pinMode(ICOOL, INPUT);
+    digitalWrite(ICOOL, 0);
+
+    //initialize sensor pins
+    pinMode(MUX_A, OUTPUT);
+    pinMode(MUX_B, OUTPUT);
+    pinMode(MUX_C, OUTPUT);
+    pinMode(MUXOUT, INPUT);
+    digitalWrite(MUXOUT, 0);
+    analogRead(MUXOUT);
+    //initialize LED/hall effect pins
+    pinMode(RED, OUTPUT);
+    pinMode(BLUE, OUTPUT);
+    pinMode(GREEN, OUTPUT);
+    digitalWrite(RED, 0);
+    digitalWrite(BLUE, 0);
+    digitalWrite(GREEN, 0);
+    pinMode(HALL, INPUT);
+    digitalWrite(HALL, 0);
   
+    //initialzie buttons
+    pinMode(TOUCH1, INPUT);
+    pinMode(TOUCH2, INPUT);
+    //set thermistor library to shift the correct number of bits
+    thermistor_setInputShift(6 - OVERSAMPLE_MAG);
+    calibrateCurrent();
+    //todo: up PWM frequency
+    return 1;//success
+}

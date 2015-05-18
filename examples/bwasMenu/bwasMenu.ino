@@ -1,3 +1,4 @@
+#define ARDUINO_H
 #include <bwas.h>
 #include <thermistor.h>
 
@@ -33,9 +34,6 @@ void setup() {
   Serial.begin(9600);
   //initialize pins
   bwasInit();
-  
-  //enable the green led
-  enableGreen();
   
   //configure thermistors
   configureThermistors(thermistor_config); 
@@ -86,9 +84,9 @@ void loop() {
           Serial.println("heater off");
           break;
         }
-        heaterOn();
-        setHeaterFan(arg);
-        Serial.print("heater on, fan to ");
+        setHeater(arg);
+        setHeaterFan(1);
+        Serial.print("heater to ");
         Serial.println(arg);
         break;
       case 'c':
@@ -98,9 +96,9 @@ void loop() {
           Serial.println("cooler off");
           break;
         }
-        coolerOn();
-        setCoolerFan(arg);
-        Serial.print("cooler on, fan to ");
+        setCooler(arg);
+        setCoolerFan(1);
+        Serial.print("cooler to ");
         Serial.println(arg);
         break;
       case 't':
