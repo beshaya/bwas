@@ -1,11 +1,16 @@
+#!/usr/bin/python
+
 import logger
 import bwasSerial as bwas
 import time
 import sys
 import bwasLogic as logic
+import signal
 
 #assign your thermistors names here!
-thermistors = {"coolring_1":4, "coolring_2":5, "heatsink_1":2,"heatsink_2":3,"heater":0,"bottle":1}
+
+thermistors = {"heater":0, "bottle":1, "coolring1":2, "coolring2":3,
+               "heatsink1":4,"heatsink2":5,"air1":6,"air2":7}
 
 #default samples per second
 default_rate = 2
@@ -16,9 +21,17 @@ filename = "log"
 comment = ""
 #comment = None
 
+def signal_handler(signal, frame):
+    print('Shutting down BWAS')
+    if bwas.off() != '\n':
+        print('Warning: No acknowledgement, check BWAS')
+    sys.exit(0)
+
 if __name__ == "__main__":
 
-    port = "COM3"
+    signal.signal(signal.SIGINT, signal_handler)
+
+    port = "COM14"
     duration = float("Inf")
     if len(sys.argv) < 2:
         print "Usage:"
@@ -26,7 +39,7 @@ if __name__ == "__main__":
         print " -p PORT           - USB serial port for Arduino"
         print " -d duration     - Duration of test in seconds (default infinity)"
         print " -r rate         - Seconds per sample (default 2)"
-        print " -l logic module - logic from bwasLogic to use (default heat)"
+        print " -l logic module - logic from bwasLogic to use (default observe)"
         print " -f filename     - log file"
         print " -c comment"
         print " --list          - list all logic modules and exit"
@@ -79,6 +92,10 @@ if __name__ == "__main__":
         for thermistor in thermistors.keys():
             data[thermistor] = bwas.readTemp(thermistors[thermistor])
         data["ir"] = bwas.readIR();
+        data["Iheat"] = bwas.readHeaterCurrent();
+        data["Icool"] = bwas.readCoolerCurrent();
+        data["touch1"] = bwas.readTouchSensor(1);
+        data["touch2"] = bwas.readTouchSensor(2);
         logic.logic[module](data)
         
         print data

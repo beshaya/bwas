@@ -23,44 +23,26 @@ def skip(arg=0) :
     pass
     
 def heat(state) :
-    bwas.heater(1)
-    bwas.heaterFan(255)
+    print bwas.ser
+    bwas.heater(255)
+    bwas.heaterFan(1)
     
 def cool(state) :
-    bwas.cooler(1)
-    bwas.coolerFan(255)
-    
-def fanTest(state) :
-    bwas.cooler(1)
-    if state['coolring_2'] < 0:
-        bwas.coolerFan(0)
-    elif state['coolring_2'] > 5:
-        bwas.coolerFan(255)
-    else:
-        bwas.coolerFan(int((state['coolring_2'])*51))
-
-def insulationTest(state) :
-    bwas.cooler(1)
-    bwas.coolerFan(255)
-    if state['coolring_2'] > 0:
-        bwas.heaterFan(0)
-    elif state['coolring_2'] < -5:
-        bwas.heaterFan(255)
-    else:
-        bwas.heaterFan(abs(int((state['coolring_2'])*51)))
+    bwas.cooler(255)
+    bwas.heaterFan(1)
     
 def user(state) :
     cmd = getch.charPressed()
     if (cmd == 'h'):
         print "heating"
-        bwas.heater(1)
-        bwas.heaterFan(255)
+        bwas.heater(255)
+        bwas.heaterFan(1)
         bwas.coolerFan(0)
         bwas.cooler(0)
     elif (cmd == 'c'): 
         print "cooling"
-        bwas.cooler(1)
-        bwas.coolerFan(255)
+        bwas.cooler(255)
+        bwas.coolerFan(1)
         bwas.heaterFan(0)
         bwas.heater(0)
     elif (cmd =='0'):

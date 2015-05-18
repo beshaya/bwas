@@ -12,36 +12,39 @@ bwas_state = {'heater':0,'heater fan':0,'cooler':0,'cooler fan':0}
 
 
 
-def heater(state) :
-    #cast to 1 or 0
-    state = 1 if state else 0;
-    bwas_state['heater'] = state
-    cmd = "h%02X\n" % state
+def heater(val) :
+    if (val > 255 or val < 0):
+        print "bad value, must be [0.255]"
+        return
+    bwas_state['heater'] = val / 255.
+    cmd = "h%02X\n" % val
     ser.write(cmd);
     
     resp = ser.readline();
 
 def cooler(state):
-    #cast to 1 or 0
-    state = 1 if state else 0;
-    bwas_state['cooler'] = state
-    cmd = "c%02X\n" % state
+    if (val > 255 or val < 0):
+        print "bad value, must be [0.255]"
+        return
+    bwas_state['cooler'] = val / 255.
+    cmd = "c%02X\n" % val
     ser.write(cmd);
     ser.readline()
 
 def coolerFan(speed):
-    if (speed > 255 or speed < 0):
-        print "bad speed, must be [0,255]"
+    if (speed != 0 and speed != 1):
+        print "warning: pwm fan has been deprectiated, use 0 or 1"
         return
-    bwas_state['cooler fan'] = speed / 255.
+    speed = 1 if speed else 0;
+    bwas_state['cooler fan'] = speed
     cmd = "C%02X\n" % speed
     ser.write(cmd)
     ser.readline();
 
 def heaterFan(speed):
-    if (speed > 255 or speed < 0):
-        print "bad speed, must be [0,255]"
-        return
+    if (speed != 0 and speed != 1):
+        print "warning: pwm fan has been depreciated, use 0 or 1"
+    speed = 1 if speed else 0;
     bwas_state['heater fan'] = speed / 255.
     cmd = "H%02X\n" % speed
     ser.write(cmd)
@@ -63,7 +66,36 @@ def readTemp(channel):
 def readIR():
     ser.write("i00\n");
     resp = ser.readline();
+    try: 
+        return float(resp);
+    except ValueError, e:
+        print "IR error"
+        return float('nan')
+
+def readHall():
+    ser.write("h00\n");
+    resp = ser.readline();
+    return int(resp)
+
+def readCoolerCurrent():
+    ser.write("I01\n");
+    resp = ser.readline();
     return float(resp);
+
+def readHeaterCurrent():
+    ser.write("I00\n");
+    resp = ser.readline();
+    return float(resp);
+
+def readTouchSensor(channel):
+    if (channel != 1 and channel != 2):
+        print "Invalid touch channel"
+        return
+    cmd = "s%02X\n" % channel
+    ser.write(cmd)
+    resp = ser.readline();
+    return int(resp)
+
 
 def red(val):
     cmd = "r%02X\n" % val
@@ -80,6 +112,8 @@ def blue(val):
     ser.write(cmd)
     ser.readline()
 
+#Turn off everything.
+#Since this is used in the SIGTERM routine, return the response
 def off(val=0):
     bwas_state['heater'] = 0
     bwas_state['cooler'] = 0
@@ -87,14 +121,19 @@ def off(val=0):
     bwas_state['heater fan'] = 0
     cmd = "o00\n"
     ser.write(cmd)
-    ser.readline()
+    response = ser.readline()
+    return response
+    
     
 def connect(port) :
     global ser
-    ser = serial.Serial(port,115200,timeout=1)
+    ser = serial.Serial(port,115200,timeout=10)
     #i don't know why, but the first two responses are always blank...
-    heater(0)
-    heater(0)
+    resp = ''
+    while(resp.find("BWAS READY") < 0):
+        resp = ser.readline()
+        print resp
+    print "ready"
 '''
  * Functions for testing this library
 '''
