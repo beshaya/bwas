@@ -1,5 +1,6 @@
 #include <bwas.h>
 #include <thermistor.h>
+#include <pwm.h>
 #include <Wire.h>
 #include "Adafruit_TMP007.h"
 
@@ -32,6 +33,8 @@ void setup() {
   } else {
     sensor_found = 1;
   }
+  setPwmFrequency(10,2); //set pwm frequency to 15625hz
+  setPwmFrequency(11,2);
   Serial.println("BWAS READY");
 }
 
