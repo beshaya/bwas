@@ -37,7 +37,6 @@ static uint8_t thermistors_configured = 0;
 //the mux had an unreasonable pinout, so these are in an unreasonable order.
 static uint8_t cMuxCodes[] = {T0,T1,T2,T3,T4,T5,T6,T7};
 
-static uint8_t enable_green = 0;
 
 static int16_t hotCurrent0;
 static int16_t coolCurrent0;
@@ -48,7 +47,6 @@ static int16_t coolCurrent0;
 
 void setCooler (uint8_t pwm_val) {
     analogWrite(COOLER, pwm_val);
-    analogWrite(HEATER, 0);
 }
 
 void coolerOff () {
@@ -65,7 +63,6 @@ void setCoolerFan (uint8_t pwm_val) {
 
 void setHeater (uint8_t pwm_val) {
     analogWrite(HEATER, pwm_val);
-    analogWrite(COOLER, 0);
 }
 
 void heaterOff () {
@@ -180,10 +177,12 @@ uint8_t readTouch2 () {
 }
 
 int16_t getCurrent(int16_t raw_adc, int16_t baseline) {
-    //convert from adc lsb's to voltage
-    int16_t raw_current = (raw_adc-baseline) * (PRECISION/OVERSAMPLE) * 5 / (1<<11 - 1);
+    //convert from adc lsb's to mV
+    int32_t raw_current = (raw_adc-baseline); //16bit int overflows
+    raw_current *= (PRECISION/OVERSAMPLE);
+    raw_current *= 5000 / (1<<10);
     //The ACS715x20 has a gain of 185 mV/A
-    int16_t current = raw_current * 185 / 1000;
+    int16_t current = raw_current / 185;
     return current;
 }
     
@@ -200,6 +199,10 @@ int16_t coolerCurrent() {
     for(int i=0;i < OVERSAMPLE; i++) {
         raw_adc += analogRead(ICOOL);
     }
+    //Serial.print("raw: ");
+    //Serial.print(raw_adc);
+    //Serial.print(" baseline: ");
+    //Serial.println(coolCurrent0);
     return getCurrent(raw_adc, coolCurrent0);
 }
 

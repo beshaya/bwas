@@ -22,7 +22,7 @@ def heater(val) :
     
     resp = ser.readline();
 
-def cooler(state):
+def cooler(val):
     if (val > 255 or val < 0):
         print "bad value, must be [0.255]"
         return
