@@ -73,7 +73,7 @@ try:
     for j in range(len(sensor_names)):
         try:
             for i in range(len(raw_data)-1):
-                if (raw_data[i+1][sensor_names[j]]) > -40.0:
+                if (raw_data[i+1][sensor_names[j]]) > -10.0:
                     sensors[j].append(raw_data[i+1][sensor_names[j]])
                 else:
                     sensors[j].append(NaN)

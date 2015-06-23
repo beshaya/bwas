@@ -22,7 +22,7 @@ def heater(val) :
     
     resp = ser.readline();
 
-def cooler(state):
+def cooler(val):
     if (val > 255 or val < 0):
         print "bad value, must be [0.255]"
         return
@@ -33,7 +33,7 @@ def cooler(state):
 
 def coolerFan(speed):
     if (speed != 0 and speed != 1):
-        print "warning: pwm fan has been deprectiated, use 0 or 1"
+        print "warning: pwm fan has been depreciated, use 0 or 1"
         return
     speed = 1 if speed else 0;
     bwas_state['cooler fan'] = speed

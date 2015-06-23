@@ -28,8 +28,9 @@ def heat(state) :
     bwas.heaterFan(1)
     
 def cool(state) :
-    bwas.cooler(255)
-    bwas.heaterFan(1)
+	bwas.cooler(255)
+    #bwas.coolerFan(1)
+	bwas.heater(150)
     
 def user(state) :
     cmd = getch.charPressed()
@@ -54,6 +55,6 @@ def userInit() :
     print "now listening to key inputs;"
     print "press h to heat, c to cool, o to off"
 
-init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip, "fanTest":skip,     "insulationTest":skip}
-logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip, "fanTest":fanTest,  "insulationTest":insulationTest}
+init =  {"heat":skip, "cool":skip, "user":userInit, "observe":skip}
+logic = {"heat":heat, "cool":cool, "user":user,     "observe":skip}
 
