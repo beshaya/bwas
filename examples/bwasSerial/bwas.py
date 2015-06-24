@@ -23,8 +23,10 @@ comment = ""
 
 def signal_handler(signal, frame):
     print('Shutting down BWAS')
-    if bwas.off() != '\n':
+    if bwas.off().index('\n') < 0:
         print('Warning: No acknowledgement, check BWAS')
+        sys.exit(1)
+    print('BWAS Shut Down');
     sys.exit(0)
 
 if __name__ == "__main__":

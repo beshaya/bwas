@@ -17,9 +17,6 @@ void setup() {
   //initialize pins
   bwasInit();
   
-  //enable the green led
-  enableGreen();
-  
   //configure thermistors
   configureThermistors(thermistor_config); 
   
