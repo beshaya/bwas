@@ -1,9 +1,13 @@
 import serial
 import sys
+import re
 
 port = 'COM6'
 ser = 0
+baud = 19200
+debug = 1
 
+numbers = re.compile('\d+(?:\.\d+)?')
 #state variables are scaled to between 0 and 1 inclusive
 bwas_state = {'heater':0,'heater fan':0,'cooler':0,'cooler fan':0}
 '''
@@ -11,6 +15,17 @@ bwas_state = {'heater':0,'heater fan':0,'cooler':0,'cooler fan':0}
 '''
 
 
+def serWriteResp(cmd):
+    if debug: print repr(cmd)+">"
+    #print '.',
+    ser.write(cmd);
+    resp = ser.readline();
+    if debug: print repr(resp)
+    #print '.',
+    resp = numbers.findall(resp)
+    if len(resp) >= 1:
+        return resp[0]
+    return '\n'
 
 def heater(val) :
     if (val > 255 or val < 0):
@@ -18,18 +33,15 @@ def heater(val) :
         return
     bwas_state['heater'] = val / 255.
     cmd = "h%02X\n" % val
-    ser.write(cmd);
+    resp = serWriteResp(cmd);
     
-    resp = ser.readline();
-
 def cooler(val):
     if (val > 255 or val < 0):
         print "bad value, must be [0.255]"
         return
     bwas_state['cooler'] = val / 255.
     cmd = "c%02X\n" % val
-    ser.write(cmd);
-    ser.readline()
+    serWriteResp(cmd)
 
 def coolerFan(speed):
     if (speed != 0 and speed != 1):
@@ -38,8 +50,7 @@ def coolerFan(speed):
     speed = 1 if speed else 0;
     bwas_state['cooler fan'] = speed
     cmd = "C%02X\n" % speed
-    ser.write(cmd)
-    ser.readline();
+    serWriteResp(cmd)
 
 def heaterFan(speed):
     if (speed != 0 and speed != 1):
@@ -47,16 +58,14 @@ def heaterFan(speed):
     speed = 1 if speed else 0;
     bwas_state['heater fan'] = speed / 255.
     cmd = "H%02X\n" % speed
-    ser.write(cmd)
-    ser.readline();
+    serWriteResp(cmd)
   
 def readTemp(channel):
     if (channel < 0 or channel > 8) :
         print "bad channel, must be [0,7]"
         return float("inf")
     cmd = "t%02X\n" % channel
-    ser.write(cmd)
-    resp = ser.readline();
+    resp = serWriteResp(cmd)
     try:
         return float(resp);
     except ValueError, e:
@@ -64,38 +73,48 @@ def readTemp(channel):
         return float('nan')
 
 def readIR():
-    ser.write("i00\n");
-    resp = ser.readline();
+    resp = serWriteResp("i00\n");
     try: 
         return float(resp);
     except ValueError, e:
-        print "IR error"
+        if debug: print e
         return float('nan')
 
 def readHall():
-    ser.write("h00\n");
-    resp = ser.readline();
-    return int(resp)
+    resp = serWriteResp("h00\n");
+    try:
+        return int(resp)
+    except ValueError, e:
+        print e
+        return int('nan')
 
 def readCoolerCurrent():
-    ser.write("I01\n");
-    resp = ser.readline();
-    return float(resp);
+    resp = serWriteResp("I01\n");
+    try:
+        return float(resp);
+    except ValueError, e:
+        print e
+        return float('nan')
 
 def readHeaterCurrent():
-    ser.write("I00\n");
-    resp = ser.readline();
-    return float(resp);
+    resp = serWriteResp("I00\n");
+    try:
+        return float(resp)
+    except ValueError, e:
+        print e
+        return float('nan')
 
 def readTouchSensor(channel):
     if (channel != 1 and channel != 2):
         print "Invalid touch channel"
         return
     cmd = "s%02X\n" % channel
-    ser.write(cmd)
-    resp = ser.readline();
-    return int(resp)
-
+    resp = serWriteResp(cmd)
+    try:
+        return int(resp)
+    except ValueError, e:
+        print e
+        return float('nan')
 
 def red(val):
     cmd = "r%02X\n" % val
@@ -127,7 +146,7 @@ def off(val=0):
     
 def connect(port) :
     global ser
-    ser = serial.Serial(port,115200,timeout=10)
+    ser = serial.Serial(port,baud,timeout=10)
     #i don't know why, but the first two responses are always blank...
     resp = ''
     while(resp.find("BWAS READY") < 0):

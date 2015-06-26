@@ -23,7 +23,7 @@ void setup() {
   thermistor_config[5] = THERMISTOR_NTCALUG03A103H;
   thermistor_config[6] = THERMISTOR_NTCLE400E3103H;
   thermistor_config[7] = THERMISTOR_NTCLE400E3103H;
-  Serial.begin(115200);
+  Serial.begin(19200);
   //initialize pins
   bwasInit();
   //configure thermistors
@@ -33,8 +33,8 @@ void setup() {
   } else {
     sensor_found = 1;
   }
-  setPwmFrequency(10,2); //set pwm frequency to 15625hz
-  setPwmFrequency(11,2);
+  //setPwmFrequency(10,2); //set pwm frequency to 15625hz
+  //setPwmFrequency(11,2);
   Serial.println("BWAS READY");
 }
 
@@ -132,6 +132,6 @@ void loop() {
         Serial.flush(); 
         return;
     }
-    Serial.println();
+    Serial.println(" ");
   }
 }

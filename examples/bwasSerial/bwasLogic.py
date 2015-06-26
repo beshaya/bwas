@@ -23,7 +23,6 @@ def skip(arg=0) :
     pass
     
 def heat(state) :
-    print bwas.ser
     bwas.heater(255)
     bwas.heaterFan(1)
     
