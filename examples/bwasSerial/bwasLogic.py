@@ -27,9 +27,9 @@ def heat(state) :
     bwas.heaterFan(1)
     
 def cool(state) :
-	bwas.cooler(100)
+	bwas.cooler(50)
     #bwas.coolerFan(1)
-	bwas.heater(150)
+	bwas.heater(50)
     
 def user(state) :
     cmd = getch.charPressed()

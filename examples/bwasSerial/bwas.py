@@ -105,7 +105,6 @@ if __name__ == "__main__":
         logger.logDict(data)
     logger.close();
     print "Test complete:", filename
-    bwas.off();
-    
+    bwas.disconnect();
 
 
