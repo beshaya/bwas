@@ -5,7 +5,7 @@ import re
 port = 'COM6'
 ser = 0
 baud = 19200
-debug = 1
+debug = 0
 
 numbers = re.compile('\d+(?:\.\d+)?')
 #state variables are scaled to between 0 and 1 inclusive

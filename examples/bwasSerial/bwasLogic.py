@@ -27,7 +27,7 @@ def heat(state) :
     bwas.heaterFan(1)
     
 def cool(state) :
-	bwas.cooler(255)
+	bwas.cooler(100)
     #bwas.coolerFan(1)
 	bwas.heater(150)
     
