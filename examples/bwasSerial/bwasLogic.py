@@ -27,8 +27,9 @@ def heat(state) :
     bwas.heaterFan(1)
     
 def cool(state) :
-    bwas.cooler(255)
-    bwas.heaterFan(1)
+	bwas.cooler(50)
+    #bwas.coolerFan(1)
+	bwas.heater(50)
     
 def user(state) :
     cmd = getch.charPressed()
@@ -38,7 +39,7 @@ def user(state) :
         bwas.heaterFan(1)
         bwas.coolerFan(0)
         bwas.cooler(0)
-    elif (cmd == 'c'):
+    elif (cmd == 'c'): 
         print "cooling"
         bwas.cooler(255)
         bwas.coolerFan(1)

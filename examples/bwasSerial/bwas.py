@@ -8,6 +8,7 @@ import bwasLogic as logic
 import signal
 
 #assign your thermistors names here!
+
 thermistors = {"heater":0, "bottle":1, "coolring1":2, "coolring2":3,
                "heatsink1":4,"heatsink2":5,"air1":6,"air2":7}
 
@@ -17,7 +18,8 @@ rate = default_rate
 
 module = "observe"
 filename = "log"
-comment = None
+comment = ""
+#comment = None
 
 def signal_handler(signal, frame):
     print('Shutting down BWAS')
@@ -99,10 +101,10 @@ if __name__ == "__main__":
         logic.logic[module](data)
         
         print data
+        print "Time Elapsed:", time.strftime('%H:%M:%S', time.gmtime(now - start_time))
         logger.logDict(data)
     logger.close();
-    print "Test complete"
-    bwas.off();
-        
+    print "Test complete:", filename
+    bwas.disconnect();
 
 

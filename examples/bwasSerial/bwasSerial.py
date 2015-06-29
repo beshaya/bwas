@@ -1,11 +1,12 @@
 import serial
 import sys
 import re
+import atexit
 
 port = 'COM6'
 ser = 0
 baud = 19200
-debug = 1
+debug = 0
 
 numbers = re.compile('\d+(?:\.\d+)?')
 #state variables are scaled to between 0 and 1 inclusive
@@ -14,9 +15,13 @@ bwas_state = {'heater':0,'heater fan':0,'cooler':0,'cooler fan':0}
  * Call these functions to control the BWAS!
 '''
 
+def exitHandler():
+    pass
+
+atexit.register(exitHandler)
 
 def serWriteResp(cmd):
-    if debug: print repr(cmd)+">"
+    if debug: print repr(cmd)+">",
     #print '.',
     ser.write(cmd);
     resp = ser.readline();
@@ -45,7 +50,7 @@ def cooler(val):
 
 def coolerFan(speed):
     if (speed != 0 and speed != 1):
-        print "warning: pwm fan has been deprectiated, use 0 or 1"
+        print "warning: pwm fan has been depreciated, use 0 or 1"
         return
     speed = 1 if speed else 0;
     bwas_state['cooler fan'] = speed
@@ -139,24 +144,32 @@ def off(val=0):
     bwas_state['cooler fan'] = 0
     bwas_state['heater fan'] = 0
     cmd = "o00\n"
-    ser.write(cmd)
-    response = ser.readline()
+    response = serWriteResp(cmd)
     return response
-    
+
+
+def disconnect() :
+    global ser
+    off()
+    ser.close()
     
 def connect(port) :
     global ser
-    ser = serial.Serial(port,baud,timeout=10)
+    ser = serial.Serial(port,baud,timeout=2)
     #i don't know why, but the first two responses are always blank...
     resp = ''
     while(resp.find("BWAS READY") < 0):
         resp = ser.readline()
+        if(resp == ""): break
         print resp
+    #atexit.register(disconnect())
+    ser.flush()
     print "ready"
 '''
  * Functions for testing this library
 '''
- 
+
+
 def echoTemp(channel):
     temperature = readTemp(channel)
     print "Temperature is %fC " % temperature
