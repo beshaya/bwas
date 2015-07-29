@@ -23,14 +23,12 @@
  ************************************************/
  
 //Power outputs
-#define COOLER_FAN 13
-#define COOLER 11
-#define HEATER_FAN 12
-#define HEATER 10
+#define COOLER 6
+#define HEATER 5
 
 //Current sensors
-#define IHEAT A7
-#define ICOOL A0
+#define IELEMENT A2
+#define IFAN A3
 
 //Themistor channels
 #define MUXOUT A6
@@ -41,21 +39,39 @@
 #define T1 0
 #define T2 1
 #define T3 2
-#define T4 4
-#define T5 6
-#define T6 7
-#define T7 5
+#define T4 5
+#define T5 4
+#define T6 6
+#define T7 7
 
 //LEDs
-#define RED 3
-#define BLUE 5
-#define GREEN 6
-#define HALL A3
 
 //Touch channels
-#define TOUCH1 A1
-#define TOUCH2 2
+#define TOUCH1 3
+#define TOUCH2 4
 
+//IR
+#define IR_T A0
+#define IR_P A1
+
+//TLC5947
+#define TLC_DATA 11
+#define TLC_CLOCK 13
+#define TLC_LATCH 10
+#define RBUTTON1 6
+#define GBUTTON1 7
+#define BBUTTON1 8
+#define RBUTTON2 9
+#define GBUTTON2 10
+#define BBUTTON2 11
+#define HFAN 12
+#define CFAN 13
+#define RED 21
+#define GREEN 22
+#define BLUE 23
+
+//HALL
+#define HALL 2
 uint8_t bwasInit() ;
 
 void coolerOff ();
@@ -66,8 +82,8 @@ void heaterOff ();
 void setHeater (uint8_t pwm_val);
 void setHeaterFan (uint8_t pwm_val);
 
-int16_t heaterCurrent();
-int16_t coolerCurrent();
+int16_t fanCurrent();
+int16_t elementCurrent();
 
 uint8_t readTouch1();
 uint8_t readTouch2();

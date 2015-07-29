@@ -22,9 +22,11 @@
 #include "bwas.h"
 #include "thermistor.h"
 #include "Arduino.h"
+#include "Adafruit_TLC5947.h"
 
 #define OVERSAMPLE_MAG 2
 #define OVERSAMPLE (1 << OVERSAMPLE_MAG)
+
 
 static thermistor_t thermistor_config[] = {
   THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE,
@@ -38,43 +40,61 @@ static uint8_t thermistors_configured = 0;
 static uint8_t cMuxCodes[] = {T0,T1,T2,T3,T4,T5,T6,T7};
 
 
-static int16_t hotCurrent0;
-static int16_t coolCurrent0;
+static int16_t fanCurrent0 = 0;
+static int16_t elementCurrent0 = 0;
+
+Adafruit_TLC5947 tlc = Adafruit_TLC5947(1, TLC_CLOCK, TLC_DATA, TLC_LATCH);
+/***************************************************
+ * TLC5947 Functions
+ ***************************************************/
+
+void setPWM (uint8_t output, uint8_t pwm_val) {
+    int16_t tlc_val = ((int16_t)pwm_val) << 4;
+    //bump up those last 4 bits if above half
+    if (tlc_val > 2 << 11) tlc_val += (2 << 5) -1;
+    tlc.setPWM(output, pwm_val << 4 );
+    delay(1);
+    tlc.write();
+}    
+
+void tlcClear() {
+    //clear all outputs
+    for(uint16_t i=0; i<8*3; i++) {
+        tlc.setPWM(i,0);
+    }
+    tlc.setPWM(CFAN, 4095);
+    tlc.setPWM(HFAN, 4095);
+    tlc.write();
+}
 
 /***************************************************
  * Power Output Functions
  ***************************************************/
 
 void setCooler (uint8_t pwm_val) {
-    analogWrite(COOLER, pwm_val);
+    digitalWrite(COOLER, pwm_val);
 }
 
 void coolerOff () {
-    analogWrite(COOLER, 0);
+    digitalWrite(COOLER, 0);
 }
 
 void setCoolerFan (uint8_t pwm_val) {
-    if (pwm_val) {
-       digitalWrite(COOLER_FAN, 1);
-    } else {
-        digitalWrite(COOLER_FAN, 0);
-    }
+    setPWM(CFAN, (255-pwm_val));
+    return;
 }
 
 void setHeater (uint8_t pwm_val) {
-    analogWrite(HEATER, pwm_val);
+    digitalWrite(HEATER, pwm_val);
 }
 
 void heaterOff () {
-  analogWrite(HEATER, 0);
+    digitalWrite(HEATER, 0);
 }
 
 void setHeaterFan (uint8_t pwm_val) {
-    if (pwm_val) {
-        digitalWrite(HEATER_FAN, 1);
-    } else {
-        digitalWrite(HEATER_FAN, 0);
-    }
+    setPWM(HFAN, (255-pwm_val));
+    return;
 }
 
 
@@ -157,15 +177,18 @@ uint8_t readHall () {
 }
 
 void analogWriteRed (uint8_t pwm_val) {
-    analogWrite(RED, pwm_val);
+    setPWM(RED, pwm_val);
+    //@todo
 }
 
 void analogWriteGreen (uint8_t pwm_val) {
-    analogWrite(GREEN, pwm_val);
+    setPWM(GREEN, pwm_val);
+    //@todo
 }
 
 void analogWriteBlue (uint8_t pwm_val) {
-    analogWrite(BLUE, pwm_val);
+    setPWM(BLUE, pwm_val);
+    //@todo
 }
 
 uint8_t readTouch1 () {
@@ -181,37 +204,37 @@ int16_t getCurrent(int16_t raw_adc, int16_t baseline) {
     int32_t raw_current = (raw_adc-baseline); //16bit int overflows
     raw_current *= (PRECISION/OVERSAMPLE);
     raw_current *= 5000 / (1<<10);
-    //The ACS715x20 has a gain of 185 mV/A
-    int16_t current = raw_current / 185;
+    //The MAX9938TEUK+ has a gain of 25V/V, with a 0.02 ohm resistor gives 500mv/A
+    int16_t current = raw_current / 500;
     return current;
 }
     
-int16_t heaterCurrent() {
+int16_t elementCurrent() {
     int16_t raw_adc = 0 ;
     for(int i=0;i < OVERSAMPLE; i++) {
-        raw_adc += analogRead(IHEAT);
+        raw_adc += analogRead(IELEMENT);
     }
-    return getCurrent(raw_adc, hotCurrent0);
+    return getCurrent(raw_adc, elementCurrent0);
 }
 
-int16_t coolerCurrent() {
+int16_t fanCurrent() {
     int16_t raw_adc = 0;
     for(int i=0;i < OVERSAMPLE; i++) {
-        raw_adc += analogRead(ICOOL);
+        raw_adc += analogRead(IFAN);
     }
     //Serial.print("raw: ");
     //Serial.print(raw_adc);
     //Serial.print(" baseline: ");
     //Serial.println(coolCurrent0);
-    return getCurrent(raw_adc, coolCurrent0);
+    return getCurrent(raw_adc, fanCurrent0);
 }
 
 void calibrateCurrent() {
-    coolCurrent0 = 0;
-    hotCurrent0 = 0;
+    fanCurrent0 = 0;
+    elementCurrent0 = 0;
     for (int i=0; i < OVERSAMPLE; i++) {
-        coolCurrent0 += analogRead(ICOOL);
-        hotCurrent0 += analogRead(IHEAT);
+        fanCurrent0 += analogRead(IFAN);
+        elementCurrent0 += analogRead(IELEMENT);
     }
 }
 
@@ -233,21 +256,21 @@ void printDecimal (int16_t temp) {
  * Initialization function
  ************************************************/
 uint8_t bwasInit() {
+
+    tlc.begin();
+    tlcClear();
+
     //initialize Heater and cooler
     pinMode(COOLER, OUTPUT);
     digitalWrite(COOLER, 0);
     pinMode(HEATER, OUTPUT);
     digitalWrite(HEATER, 0);
-    //initialize fans
-    pinMode(COOLER_FAN, OUTPUT);
-    analogWrite(COOLER_FAN, 0);
-    pinMode(HEATER_FAN, OUTPUT);
-    analogWrite(HEATER_FAN, 0);
+
     //initialize current sensors
-    pinMode(IHEAT, INPUT);
-    digitalWrite(IHEAT, 0);
-    pinMode(ICOOL, INPUT);
-    digitalWrite(ICOOL, 0);
+    pinMode(IELEMENT, INPUT);
+    digitalWrite(IELEMENT, 0);
+    pinMode(IFAN, INPUT);
+    digitalWrite(IFAN, 0);
 
     //initialize sensor pins
     pinMode(MUX_A, OUTPUT);
@@ -257,12 +280,6 @@ uint8_t bwasInit() {
     digitalWrite(MUXOUT, 0);
     analogRead(MUXOUT);
     //initialize LED/hall effect pins
-    pinMode(RED, OUTPUT);
-    pinMode(BLUE, OUTPUT);
-    pinMode(GREEN, OUTPUT);
-    digitalWrite(RED, 0);
-    digitalWrite(BLUE, 0);
-    digitalWrite(GREEN, 0);
     pinMode(HALL, INPUT);
     digitalWrite(HALL, 0);
   
