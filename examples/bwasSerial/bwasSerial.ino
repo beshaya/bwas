@@ -1,8 +1,7 @@
 #include <bwas.h>
 #include <thermistor.h>
 #include <pwm.h>
-#include <Wire.h>
-#include "Adafruit_TMP007.h"
+#include <Adafruit_TLC5947.h>
 
 //choose thermistor types for the 8 channels
 thermistor_t thermistor_config[8];
@@ -10,29 +9,22 @@ thermistor_t thermistor_config[8];
 //array for reading temperatures
 int16_t temperatures[8];
 
-Adafruit_TMP007 tmp007;
-uint8_t sensor_found = 0;
-
 void setup() {
 
-  thermistor_config[0] = THERMISTOR_NTCLG100E2103JB;
-  thermistor_config[1] = THERMISTOR_NTCLE400E3103H;
+  thermistor_config[0] = THERMISTOR_NTCLG100E2103JB; //1K
+  thermistor_config[1] = THERMISTOR_NTCALUG03A103H; //4k7
   thermistor_config[2] = THERMISTOR_NTCALUG03A103H;
   thermistor_config[3] = THERMISTOR_NTCALUG03A103H;
   thermistor_config[4] = THERMISTOR_NTCALUG03A103H;
   thermistor_config[5] = THERMISTOR_NTCALUG03A103H;
-  thermistor_config[6] = THERMISTOR_NTCLE400E3103H;
-  thermistor_config[7] = THERMISTOR_NTCLE400E3103H;
+  thermistor_config[6] = THERMISTOR_NTCALUG03A103H;
+  thermistor_config[7] = THERMISTOR_NTCALUG03A103H;
   Serial.begin(19200);
   //initialize pins
   bwasInit();
   //configure thermistors
   configureThermistors(thermistor_config); 
-  if (! tmp007.begin(TMP007_CFG_1SAMPLE)) {
-    Serial.println("No IR sensor found");
-  } else {
-    sensor_found = 1;
-  }
+
   //setPwmFrequency(10,2); //set pwm frequency to 15625hz
   //setPwmFrequency(11,2);
   Serial.println("BWAS READY");
@@ -52,9 +44,9 @@ void readTouchSwitch(uint8_t channel) {
 
 void readCurrent(uint8_t arg) {
   if (arg == 0) {
-    printDecimal(heaterCurrent());
+    printDecimal(elementCurrent());
   } else if (arg == 1) {
-    printDecimal(coolerCurrent());
+    printDecimal(fanCurrent());
   }
 }
 
@@ -100,6 +92,7 @@ void loop() {
         break;
       case 'C':
         setCoolerFan(arg);
+        break;
       case 't':
         readOne(arg);
         break;
@@ -117,6 +110,7 @@ void loop() {
         heaterOff();
         setCoolerFan(0);
         setHeaterFan(0);
+        tlcClear();
         break;
       case 's':
         readTouchSwitch(arg);
@@ -126,7 +120,7 @@ void loop() {
         readCurrent(arg);
         break;
       case 'i':
-        Serial.print(tmp007.readObjTempC());
+        Serial.print("nan");
         break;
       default:
         Serial.flush(); 
