@@ -29,8 +29,9 @@
 #define PWM_MAX_VAL 255
 
 static thermistor_t thermistor_config[] = {
-  THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE,
-  THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE
+    THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE,
+        THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE,
+        THERMISTOR_ZTP135SR_T
 };
 
 static uint8_t thermistors_configured = 0;
@@ -126,24 +127,42 @@ uint8_t readAllThermistors (int16_t * temperatures) {
   return 1;
 }
 
+int16_t readIR () {
+    uint16_t value = 0;
+    for (int i = 0; i < OVERSAMPLE; i++) {
+        value += analogRead(IR_P);
+    }
+    int16_t ir_delta = getIR(value);
+    int16_t ir_module_temp = readThermistor(9);
+    return ir_delta + ir_module_temp;
+}
+    
 int16_t readThermistor (uint8_t index) {
-  if (index >= 8 || index < 0) return 0x8000;
+  if (index >= 9 || index < 0) return 0x8000;
   if (! thermistors_configured) {
     Serial.println("Must configure thermistors!");
     return 0x8000; //return min int
   }
-  //set the mux for the correct pin
-  //A is lsb, C is msb
-  uint8_t mux_code = cMuxCodes[index];
-  digitalWrite(MUX_A, mux_code & 0x1);
-  digitalWrite(MUX_B, (mux_code >> 1) & 0x1);
-  digitalWrite(MUX_C, (mux_code >> 2) & 0x1);
-  //allow time to settle, then read and convert
-  delay(40);
+
+  //make thermistor for IR index 8
+  if (index < 8) {
+      //set the mux for the correct pin
+      //A is lsb, C is msb
+      uint8_t mux_code = cMuxCodes[index];
+      digitalWrite(MUX_A, mux_code & 0x1);
+      digitalWrite(MUX_B, (mux_code >> 1) & 0x1);
+      digitalWrite(MUX_C, (mux_code >> 2) & 0x1);
+      //allow time to settle, then read and convert
+      delay(40);
+  }
   uint16_t value = 0;
   for (int i = 0; i < OVERSAMPLE; i++) {
-    value += analogRead(MUXOUT);
-    delay(10);
+      if (index == 8) {
+          value += analogRead(IR_T);
+      } else {
+          value += analogRead(MUXOUT);
+      }
+      delay(10);
     //Serial.println(value);
   }
   return getThermistorTemp(value, thermistor_config[index]);

@@ -91,7 +91,9 @@ uint8_t readTouch2();
 uint8_t configureThermistors (thermistor_t * configs);
 uint8_t readAllThermistors (int16_t * temperatures);
 int16_t readThermistor (uint8_t index);
+int16_t readIR();
 int16_t testThermistor (thermistor_t type);
+
 
 uint8_t readHall ();
 void analogWriteRed (uint8_t pwm_val);

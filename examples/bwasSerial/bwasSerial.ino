@@ -87,7 +87,6 @@ void loop() {
         setCooler(arg);
         break;
       case 'H':
-        //set heater still takes arg
         setHeaterFan(arg);
         break;
       case 'C':
@@ -120,7 +119,7 @@ void loop() {
         readCurrent(arg);
         break;
       case 'i':
-        Serial.print("nan");
+        printDecimal(readIR());
         break;
       default:
         Serial.flush(); 
