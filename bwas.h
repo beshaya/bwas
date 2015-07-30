@@ -102,5 +102,6 @@ void calibrateCurrent ();
 void printDecimal (int16_t number);
  
 void tlcClear();
+void setPWM(uint8_t channel, uint8_t pwm_val);
 
 #endif

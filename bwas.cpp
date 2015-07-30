@@ -26,7 +26,7 @@
 
 #define OVERSAMPLE_MAG 2
 #define OVERSAMPLE (1 << OVERSAMPLE_MAG)
-
+#define PWM_MAX_VAL 255
 
 static thermistor_t thermistor_config[] = {
   THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE, THERMISTOR_NONE,
@@ -62,8 +62,6 @@ void tlcClear() {
     for(uint16_t i=0; i<8*3; i++) {
         tlc.setPWM(i,0);
     }
-    tlc.setPWM(CFAN, 4095);
-    tlc.setPWM(HFAN, 4095);
     tlc.write();
 }
 
@@ -80,7 +78,8 @@ void coolerOff () {
 }
 
 void setCoolerFan (uint8_t pwm_val) {
-    setPWM(CFAN, (255-pwm_val));
+    if (pwm_val > PWM_MAX_VAL) pwm_val = PWM_MAX_VAL;
+    setPWM(CFAN, (pwm_val));
     return;
 }
 
@@ -93,7 +92,8 @@ void heaterOff () {
 }
 
 void setHeaterFan (uint8_t pwm_val) {
-    setPWM(HFAN, (255-pwm_val));
+    if (pwm_val > PWM_MAX_VAL) pwm_val = PWM_MAX_VAL;
+    setPWM(HFAN, (pwm_val));
     return;
 }
 

@@ -32,6 +32,9 @@ def serWriteResp(cmd):
         return resp[0]
     return '\n'
 
+#elements and fans keep switching which gets pwm, so bwasSerial will simply
+#pass on whatever the user specifies
+#in general, this should be fine because 0=false else true
 def heater(val) :
     if (val > 255 or val < 0):
         print "bad value, must be [0.255]"
@@ -49,17 +52,11 @@ def cooler(val):
     serWriteResp(cmd)
 
 def coolerFan(speed):
-    if (speed != 0 and speed != 1):
-        print "warning: pwm fan has been depreciated, use 0 or 1"
-        return
-    speed = 1 if speed else 0;
     bwas_state['cooler fan'] = speed
     cmd = "C%02X\n" % speed
     serWriteResp(cmd)
 
 def heaterFan(speed):
-    if (speed != 0 and speed != 1):
-        print "warning: pwm fan has been depreciated, use 0 or 1"
     speed = 1 if speed else 0;
     bwas_state['heater fan'] = speed / 255.
     cmd = "H%02X\n" % speed
